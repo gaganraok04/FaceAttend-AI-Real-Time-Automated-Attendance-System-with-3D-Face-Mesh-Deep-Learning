@@ -25,3 +25,4 @@ desktop.ini
 *.log
 .matplotlib/
 .pytest_cache/
+
