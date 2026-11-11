@@ -1,0 +1,12 @@
+# Computer Vision & Face Processing
+opencv-contrib-python>=4.8.0
+mediapipe>=0.10.0
+
+# Deep Learning & Object Detection
+ultralytics>=8.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Numerical & Image Utilities
+numpy>=1.23.0
+Pillow>=9.0.0
