@@ -47,33 +47,33 @@ Traditional manual attendance methods suffer from proxy marking, wasted lecture 
 
 <div align="center">
 
-### Figure 1: Executive Desktop GUI Dashboard
-![Figure 1: Executive Desktop GUI Dashboard](assets/gui_dashboard.png)
-*Figure 1: Unified Desktop GUI dashboard showing live system status indicators, 1-click action triggers, inline student enrollment, and tabular records browser with compact management controls.*
+<h3>Figure 1: Executive Desktop GUI Dashboard</h3>
+<img src="assets/gui_dashboard.png" width="85%" alt="Figure 1: Executive Desktop GUI Dashboard" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+<p><i>Figure 1: Unified Desktop GUI dashboard showing live system status indicators, 1-click action triggers, inline student enrollment, and tabular records browser with compact management controls.</i></p>
 
 <br/>
 
-### Figure 2: Real-Time Live Attendance with 3D Geometric Face Mesh
-![Figure 2: Real-Time Live Attendance](assets/live_mesh_attendance.png)
-*Figure 2: Live camera stream operating at 30+ FPS featuring the light-brown geometric facial wireframe (with open eye/mouth contours and zero clutter dots), status HUD cards, and identity verification badges.*
+<h3>Figure 2: Real-Time Live Attendance with 3D Geometric Face Mesh (Demo)</h3>
+<img src="assets/live_mesh_attendance.png" width="85%" alt="Figure 2: Real-Time Live Attendance" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+<p><i>Figure 2: Real-time biometric camera feed operating at 30+ FPS with the light-brown geometric 3D facial wireframe (open eye/mouth contours, zero dotted clutter), HUD cards, and identity verification badges.</i></p>
 
 <br/>
 
-### Figure 3: Biometric Face Recognition & Distance Metric Scoring
-![Figure 3: Biometric Face Recognition](assets/recognition_test.jpg)
-*Figure 3: Instantaneous identity verification display showing matched student name, roll number, and real-time Euclidean texture distance score.*
+<h3>Figure 3: Biometric Face Recognition & Distance Metric Scoring (Demo)</h3>
+<img src="assets/recognition_test.png" width="85%" alt="Figure 3: Biometric Face Recognition" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+<p><i>Figure 3: Instantaneous identity verification diagnostic test showing matched student identification, threshold comparison, and real-time Euclidean texture distance score.</i></p>
 
 <br/>
 
-### Figure 4: YOLOv8 Object Detection Confusion Matrix
-![Figure 4: YOLOv8 Confusion Matrix](assets/confusion_matrix.png)
-*Figure 4: Normalized confusion matrix demonstrating high detection precision and recall across student dataset validation classes.*
+<h3>Figure 4: YOLOv8 Object Detection Confusion Matrix</h3>
+<img src="assets/confusion_matrix.png" width="70%" alt="Figure 4: YOLOv8 Confusion Matrix" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+<p><i>Figure 4: Normalized confusion matrix demonstrating high detection precision and recall across student dataset validation classes.</i></p>
 
 <br/>
 
-### Figure 5: YOLOv8 Training Loss & Precision/Recall Convergence Curves
-![Figure 5: Training Results](assets/yolo_results.png)
-*Figure 5: Training and validation loss curves (Box, Class, DFL) across training epochs illustrating rapid convergence and high mean average precision (mAP50).*
+<h3>Figure 5: YOLOv8 Training Loss & Convergence Performance</h3>
+<img src="assets/yolo_results.png" width="85%" alt="Figure 5: Training Results" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+<p><i>Figure 5: Training and validation loss curves (Box, Class, DFL) across training epochs illustrating rapid convergence and high mean average precision (mAP50).</i></p>
 
 </div>
 
