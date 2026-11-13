@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FaceAttend AI — Real-Time Automated Attendance System</title>
-  <meta name="description" content="Next-Generation Contactless Student Attendance Management via 3D Facial Mesh, YOLOv8 Deep Learning & LBPH Face Recognition.">
-  <meta name="theme-color" content="#15120f">
+  <meta name="description" content="Next-Generation Contactless Student Attendance Management via 3D Facial Mesh, YOLOv8 Deep Learning & LBPH Face Recognition. Live in-browser demo.">
+  <meta name="theme-color" content="#14110e">
 
-  <!-- Open Graph / Meta -->
-  <meta property="og:title" content="FaceAttend AI: 3D Face Mesh & Deep Learning Attendance System">
-  <meta property="og:description" content="Real-time contactless student attendance system with YOLOv8, MediaPipe 3D Mesh, OpenCV LBPH, and Desktop GUI.">
+  <!-- Open Graph -->
+  <meta property="og:title" content="FaceAttend AI — Live 3D Face Mesh Attendance System">
+  <meta property="og:description" content="Real-time contactless student attendance platform with live in-browser camera tracking, YOLOv8, MediaPipe, and OpenCV.">
   <meta property="og:image" content="assets/gui_dashboard.png">
   <meta property="og:type" content="website">
 
@@ -18,10 +18,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <!-- MediaPipe Face Mesh & Camera Utils -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
   <style>
-    /* ========================================================
-       DESIGN TOKENS — LIGHT BROWN & ROASTED ESPRESSO
-       ======================================================== */
     :root {
       --bg-base: #14110e;
       --bg-surface: #1d1814;
@@ -33,14 +34,14 @@
       --caramel-primary: #d4a373;
       --caramel-light: #faedcd;
       --caramel-dark: #b87c47;
-      --caramel-glow: rgba(212, 163, 115, 0.22);
+      --caramel-glow: rgba(212, 163, 115, 0.25);
 
       --text-main: #faedcd;
       --text-muted: #c4b5a2;
       --text-dim: #8e7e6f;
 
       --badge-success: #2ecc71;
-      --badge-success-bg: rgba(46, 204, 113, 0.12);
+      --badge-success-bg: rgba(46, 204, 113, 0.15);
       --badge-accent-bg: rgba(212, 163, 115, 0.12);
 
       --radius-sm: 6px;
@@ -55,7 +56,6 @@
       --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
     }
 
-    /* CSS Reset */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -73,7 +73,7 @@
       line-height: 1.65;
       overflow-x: hidden;
       min-height: 100vh;
-      background: radial-gradient(circle at 50% 0%, #291f18 0%, var(--bg-base) 70%);
+      background: radial-gradient(circle at 50% 0%, #2b2019 0%, var(--bg-base) 70%);
     }
 
     a {
@@ -99,14 +99,12 @@
       padding: 0 24px;
     }
 
-    /* ========================================================
-       NAVIGATION BAR
-       ======================================================== */
+    /* ================= NAVBAR ================= */
     .navbar {
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: rgba(20, 17, 14, 0.88);
+      background: rgba(20, 17, 14, 0.92);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border-subtle);
@@ -150,7 +148,7 @@
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 28px;
+      gap: 24px;
       list-style: none;
     }
 
@@ -160,14 +158,14 @@
       font-weight: 500;
     }
 
-    .nav-links a:hover {
+    .nav-links a:hover, .nav-links a.active {
       color: var(--caramel-primary);
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .btn-github {
@@ -198,7 +196,6 @@
       fill: currentColor;
     }
 
-    /* Mobile Hamburger */
     .mobile-toggle {
       display: none;
       background: none;
@@ -209,11 +206,9 @@
       padding: 4px;
     }
 
-    /* ========================================================
-       HERO SECTION
-       ======================================================== */
+    /* ================= HERO ================= */
     .hero {
-      padding: 85px 0 60px;
+      padding: 75px 0 50px;
       text-align: center;
       position: relative;
     }
@@ -222,7 +217,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 16px;
+      padding: 6px 18px;
       background: var(--badge-accent-bg);
       border: 1px solid var(--border-highlight);
       border-radius: 999px;
@@ -270,7 +265,7 @@
       justify-content: center;
       gap: 16px;
       flex-wrap: wrap;
-      margin-bottom: 50px;
+      margin-bottom: 40px;
     }
 
     .btn-primary {
@@ -285,6 +280,8 @@
       border-radius: var(--radius-md);
       box-shadow: 0 4px 18px var(--caramel-glow);
       transition: all 0.25s ease;
+      cursor: pointer;
+      border: none;
     }
 
     .btn-primary:hover {
@@ -305,6 +302,7 @@
       border: 1px solid var(--border-highlight);
       border-radius: var(--radius-md);
       transition: all 0.25s ease;
+      cursor: pointer;
     }
 
     .btn-secondary:hover {
@@ -347,9 +345,356 @@
       letter-spacing: 0.05em;
     }
 
-    /* ========================================================
-       SECTION HEADERS
-       ======================================================== */
+    /* ================= LIVE WORKING DEMO CONTAINER ================= */
+    .live-demo-section {
+      padding: 60px 0 90px;
+      background: linear-gradient(180deg, rgba(20, 17, 14, 0) 0%, rgba(34, 28, 23, 0.6) 50%, rgba(20, 17, 14, 0) 100%);
+    }
+
+    .demo-wrapper {
+      background: var(--bg-surface);
+      border: 2px solid var(--caramel-primary);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card), 0 0 35px var(--caramel-glow);
+      overflow: hidden;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .demo-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--bg-surface-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .demo-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .demo-title-pulse {
+      width: 10px;
+      height: 10px;
+      background: var(--badge-success);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--badge-success);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .demo-title-text {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-main);
+    }
+
+    .demo-controls-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-demo-start {
+      background: linear-gradient(135deg, var(--caramel-primary), var(--caramel-dark));
+      color: #14110e;
+      border: none;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-demo-start:hover {
+      box-shadow: 0 4px 14px var(--caramel-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-demo-stop {
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-demo-stop:hover {
+      background: #e74c3c;
+    }
+
+    .btn-demo-action {
+      background: var(--bg-surface);
+      color: var(--caramel-light);
+      border: 1px solid var(--border-highlight);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-demo-action:hover {
+      border-color: var(--caramel-primary);
+      color: var(--caramel-primary);
+    }
+
+    /* Screen / Canvas viewport */
+    .demo-viewport-wrap {
+      position: relative;
+      width: 100%;
+      height: 540px;
+      background: #0f0c0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #webcamVideo {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Mirror camera */
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #outputCanvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    .demo-placeholder {
+      position: absolute;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 30px;
+      background: radial-gradient(circle, rgba(34, 28, 23, 0.8) 0%, rgba(15, 12, 10, 0.95) 80%);
+      width: 100%;
+      height: 100%;
+    }
+
+    .demo-placeholder-icon {
+      font-size: 3.5rem;
+      margin-bottom: 16px;
+      color: var(--caramel-primary);
+    }
+
+    .demo-placeholder-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .demo-placeholder-desc {
+      font-size: 0.98rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin-bottom: 24px;
+    }
+
+    /* Floating In-Video HUD */
+    .video-hud-overlay {
+      position: absolute;
+      z-index: 10;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      pointer-events: none;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hud-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .hud-badge {
+      background: rgba(20, 17, 14, 0.82);
+      border: 1px solid var(--border-highlight);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--caramel-light);
+      backdrop-filter: blur(8px);
+    }
+
+    .hud-badge.green {
+      color: var(--badge-success);
+      border-color: var(--badge-success);
+    }
+
+    .hud-bottom-card {
+      align-self: center;
+      background: rgba(20, 17, 14, 0.88);
+      border: 1px solid var(--caramel-primary);
+      border-radius: var(--radius-md);
+      padding: 12px 24px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .hud-status-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--badge-success);
+      letter-spacing: 0.05em;
+    }
+
+    .hud-status-student {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 2px 0;
+    }
+
+    .hud-status-meta {
+      font-size: 0.78rem;
+      color: var(--caramel-primary);
+      font-family: var(--font-mono);
+    }
+
+    /* Bottom Interactive Demo Dock */
+    .demo-dock-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      background: var(--bg-surface-elevated);
+      border-top: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .demo-inputs-inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .demo-input {
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      outline: none;
+      min-width: 150px;
+    }
+
+    .demo-input:focus {
+      border-color: var(--caramel-primary);
+      box-shadow: 0 0 10px var(--caramel-glow);
+    }
+
+    .btn-mark-attendance {
+      background: var(--badge-success);
+      color: #0d2818;
+      border: none;
+      padding: 9px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-mark-attendance:hover {
+      background: #27ae60;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(46, 204, 113, 0.4);
+    }
+
+    /* Interactive Attendance Table inside Demo */
+    .demo-table-wrap {
+      padding: 24px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .demo-table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .demo-table-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--caramel-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-export-csv {
+      background: transparent;
+      border: 1px solid var(--caramel-primary);
+      color: var(--caramel-light);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-export-csv:hover {
+      background: var(--caramel-primary);
+      color: #14110e;
+    }
+
+    /* Sections Common */
     .section {
       padding: 80px 0;
     }
@@ -382,9 +727,7 @@
       color: var(--text-muted);
     }
 
-    /* ========================================================
-       LIVE WORKING FIGURES GALLERY
-       ======================================================== */
+    /* Figures Grid */
     .figures-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -468,9 +811,7 @@
       line-height: 1.55;
     }
 
-    /* ========================================================
-       SYSTEM ARCHITECTURE PIPELINE
-       ======================================================== */
+    /* Pipeline Grid */
     .arch-container {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -483,7 +824,6 @@
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 16px;
-      position: relative;
     }
 
     .pipeline-step {
@@ -492,7 +832,6 @@
       border-radius: var(--radius-md);
       padding: 22px 18px;
       text-align: center;
-      position: relative;
       transition: all 0.25s ease;
     }
 
@@ -528,9 +867,7 @@
       line-height: 1.4;
     }
 
-    /* ========================================================
-       TECHNOLOGY STACK GRID
-       ======================================================== */
+    /* Tech Stack */
     .tech-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -553,7 +890,6 @@
     .tech-icon {
       font-size: 2rem;
       margin-bottom: 16px;
-      display: inline-block;
     }
 
     .tech-title {
@@ -584,9 +920,7 @@
       font-weight: bold;
     }
 
-    /* ========================================================
-       QUICKSTART CODE BLOCK
-       ======================================================== */
+    /* Code Container */
     .code-container {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -634,12 +968,7 @@
       padding: 4px 10px;
       border-radius: var(--radius-sm);
       font-size: 0.8rem;
-      font-family: var(--font-sans);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
     }
 
     .btn-copy:hover {
@@ -656,25 +985,17 @@
       line-height: 1.7;
     }
 
-    .code-comment {
-      color: var(--text-dim);
-    }
+    .code-comment { color: var(--text-dim); }
+    .code-cmd { color: #faedcd; }
 
-    .code-cmd {
-      color: #faedcd;
-    }
-
-    /* ========================================================
-       DATA SCHEMA TABLE
-       ======================================================== */
+    /* Tables */
     .table-container {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
       overflow-x: auto;
       box-shadow: var(--shadow-card);
-      max-width: 900px;
-      margin: 0 auto;
+      width: 100%;
     }
 
     table {
@@ -687,24 +1008,19 @@
     th {
       background: var(--bg-surface-elevated);
       color: var(--caramel-primary);
-      padding: 16px 20px;
+      padding: 14px 18px;
       font-weight: 700;
       border-bottom: 1px solid var(--border-subtle);
     }
 
     td {
-      padding: 14px 20px;
+      padding: 12px 18px;
       border-bottom: 1px solid var(--border-subtle);
       color: var(--text-muted);
     }
 
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover td {
-      background: rgba(212, 163, 115, 0.04);
-    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(212, 163, 115, 0.04); }
 
     .badge-present {
       display: inline-block;
@@ -716,9 +1032,7 @@
       font-size: 0.8rem;
     }
 
-    /* ========================================================
-       FOOTER & GITHUB CTA BANNER
-       ======================================================== */
+    /* CTA Banner */
     .cta-banner {
       background: linear-gradient(135deg, #2b211a, #1a1512);
       border: 1px solid var(--border-highlight);
@@ -752,13 +1066,7 @@
       font-size: 0.9rem;
     }
 
-    .footer a {
-      color: var(--caramel-primary);
-    }
-
-    /* ========================================================
-       IMAGE PREVIEW MODAL
-       ======================================================== */
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
@@ -774,9 +1082,7 @@
       padding: 24px;
     }
 
-    .modal.active {
-      display: flex;
-    }
+    .modal.active { display: flex; }
 
     .modal-content-wrap {
       max-width: 1200px;
@@ -814,19 +1120,30 @@
       color: var(--text-main);
       font-size: 2rem;
       cursor: pointer;
-      line-height: 1;
     }
 
-    /* ========================================================
-       RESPONSIVE ADAPTATIONS (MOBILE, TABLET, LAPTOP)
-       ======================================================== */
+    /* Toast Notification */
+    .toast-notice {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--caramel-primary);
+      color: var(--caramel-light);
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: none;
+      z-index: 3000;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    /* Responsive */
     @media (max-width: 1024px) {
-      .pipeline-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .tech-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      .pipeline-grid { grid-template-columns: repeat(3, 1fr); }
+      .tech-grid { grid-template-columns: repeat(2, 1fr); }
+      .demo-viewport-wrap { height: 420px; }
     }
 
     @media (max-width: 768px) {
@@ -842,41 +1159,24 @@
         padding: 20px;
         gap: 16px;
       }
-      .nav-links.active {
-        display: flex;
-      }
-      .mobile-toggle {
-        display: block;
-      }
-      .metrics-bar {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .figures-grid {
-        grid-template-columns: 1fr;
-      }
-      .pipeline-grid {
-        grid-template-columns: 1fr;
-      }
-      .tech-grid {
-        grid-template-columns: 1fr;
-      }
-      .hero {
-        padding: 50px 0 40px;
-      }
+      .nav-links.active { display: flex; }
+      .mobile-toggle { display: block; }
+      .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+      .figures-grid { grid-template-columns: 1fr; }
+      .pipeline-grid { grid-template-columns: 1fr; }
+      .tech-grid { grid-template-columns: 1fr; }
+      .demo-viewport-wrap { height: 350px; }
+      .demo-dock-bar { flex-direction: column; align-items: stretch; }
+      .demo-inputs-inline { width: 100%; }
+      .demo-input { width: 100%; }
+      .btn-mark-attendance { width: 100%; justify-content: center; }
     }
 
     @media (max-width: 480px) {
-      .metrics-bar {
-        grid-template-columns: 1fr;
-      }
-      .btn-primary, .btn-secondary, .btn-github {
-        width: 100%;
-        justify-content: center;
-      }
-      .hero-cta {
-        flex-direction: column;
-        width: 100%;
-      }
+      .metrics-bar { grid-template-columns: 1fr; }
+      .btn-primary, .btn-secondary, .btn-github { width: 100%; justify-content: center; }
+      .hero-cta { flex-direction: column; width: 100%; }
+      .demo-viewport-wrap { height: 280px; }
     }
   </style>
 </head>
@@ -893,8 +1193,8 @@
       <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Navigation">☰</button>
 
       <ul class="nav-links" id="navLinks">
-        <li><a href="#overview">Overview</a></li>
-        <li><a href="#figures">Live Figures</a></li>
+        <li><a href="#live-demo" style="color: var(--caramel-primary); font-weight: 700;">⚡ Live Demo</a></li>
+        <li><a href="#figures">Working Figures</a></li>
         <li><a href="#architecture">Architecture</a></li>
         <li><a href="#tech-stack">Tech Stack</a></li>
         <li><a href="#quickstart">Quickstart</a></li>
@@ -914,7 +1214,7 @@
     <div class="container">
       <div class="hero-badge">
         <span class="hero-badge-pulse"></span>
-        Production-Ready Computer Vision System
+        Interactive Live Working Demonstration Ready
       </div>
 
       <h1 class="hero-title">
@@ -922,18 +1222,17 @@
       </h1>
 
       <p class="hero-subtitle">
-        Eliminate proxy attendance and roll-call delays. A contactless biometric platform fusing 
-        <strong>YOLOv8</strong> deep object detection, <strong>Google MediaPipe</strong> 3D spatial face tracking, 
-        and <strong>OpenCV LBPH</strong> with an executive desktop dashboard.
+        A real-time contactless attendance system fusing <strong>YOLOv8</strong> deep object detection, 
+        <strong>MediaPipe</strong> 3D spatial facial wireframe tracking, and <strong>OpenCV LBPH</strong>. 
+        Test the live camera demo directly in your browser below!
       </p>
 
       <div class="hero-cta">
-        <a href="https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning" target="_blank" rel="noopener noreferrer" class="btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          View GitHub Repository
+        <a href="#live-demo" class="btn-primary">
+          🎥 Launch Live In-Browser Demo
         </a>
-        <a href="#figures" class="btn-secondary">
-          ⚡ Explore Live Working Figures
+        <a href="https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+          ⭐ View GitHub Repository
         </a>
       </div>
 
@@ -959,14 +1258,133 @@
     </div>
   </header>
 
-  <!-- ==================== LIVE WORKING FIGURES ==================== -->
+  <!-- ==================== LIVE WORKING IN-BROWSER DEMO ==================== -->
+  <section class="live-demo-section" id="live-demo">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Interactive Real-Time Engine</div>
+        <h2 class="section-title">⚡ Live In-Browser Camera Demo</h2>
+        <p class="section-desc">
+          Click <strong>Start Live Webcam</strong> to activate real-time 3D geometric facial mesh tracking and test automated attendance marking right on your mobile phone, laptop, or desktop!
+        </p>
+      </div>
+
+      <div class="demo-wrapper">
+        <!-- Top Controls Bar -->
+        <div class="demo-header-bar">
+          <div class="demo-title-group">
+            <span class="demo-title-pulse"></span>
+            <span class="demo-title-text" id="engineStatusText">FaceAttend AI Engine: Standby</span>
+          </div>
+
+          <div class="demo-controls-top">
+            <button class="btn-demo-start" id="startCamBtn" onclick="startCamera()">
+              ▶ Start Live Webcam
+            </button>
+            <button class="btn-demo-stop" id="stopCamBtn" onclick="stopCamera()">
+              ⏹ Stop Camera
+            </button>
+            <button class="btn-demo-action" id="switchCamBtn" onclick="switchCamera()">
+              🔄 Flip Camera
+            </button>
+            <button class="btn-demo-action" onclick="toggleSimulatedMode()">
+              🧪 Demo Simulation
+            </button>
+          </div>
+        </div>
+
+        <!-- Video & Canvas Viewport -->
+        <div class="demo-viewport-wrap" id="viewportWrap">
+          <video id="webcamVideo" playsinline autoplay muted></video>
+          <canvas id="outputCanvas"></canvas>
+
+          <!-- Placeholder when camera is off -->
+          <div class="demo-placeholder" id="demoPlaceholder">
+            <div class="demo-placeholder-icon">👁️</div>
+            <h3 class="demo-placeholder-title">Webcam Stream Not Active</h3>
+            <p class="demo-placeholder-desc">
+              Allow browser camera access when prompted, or click <strong>Demo Simulation</strong> to preview the 3D facial mesh tracking engine in action.
+            </p>
+            <button class="btn-primary" onclick="startCamera()">
+              ▶ Start Live Camera Feed
+            </button>
+          </div>
+
+          <!-- In-Video Real-Time HUD -->
+          <div class="video-hud-overlay" id="videoHud">
+            <div class="hud-top-row">
+              <div class="hud-badge green" id="fpsBadge">● LIVE [30.0 FPS]</div>
+              <div class="hud-badge" id="modelBadge">MediaPipe 3D Mesh + LBPH</div>
+            </div>
+
+            <div class="hud-bottom-card" id="hudStatusCard">
+              <div class="hud-status-title">✓ BIOMETRIC RECOGNITION: ACTIVE</div>
+              <div class="hud-status-student" id="hudStudentName">Student Detected (ID: 101)</div>
+              <div class="hud-status-meta" id="hudMetrics">Distance: 38.4 | Threshold: &le; 55 | Status: Ready</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Attendance Form & Quick Mark Action -->
+        <div class="demo-dock-bar">
+          <div class="demo-inputs-inline">
+            <input type="text" id="studentIdInput" class="demo-input" placeholder="Student ID (e.g. 101)" value="101" />
+            <input type="text" id="studentNameInput" class="demo-input" placeholder="Student Name" value="Demo Student" />
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-mark-attendance" onclick="markAttendance()">
+              📸 Mark Attendance Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Attendance Table Log -->
+        <div class="demo-table-wrap">
+          <div class="demo-table-header">
+            <div class="demo-table-title">
+              📋 In-Browser Live Attendance Session Records
+            </div>
+            <button class="btn-export-csv" onclick="exportAttendanceCSV()">
+              ⬇ Download attendance.csv
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table id="attendanceTable">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Student Name</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Verification Status</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTableBody">
+                <tr>
+                  <td style="font-family: var(--font-mono); font-weight: 700;">101</td>
+                  <td>Demo Student</td>
+                  <td id="initialDate">2026-11-13</td>
+                  <td id="initialTime">08:35:12</td>
+                  <td><span class="badge-present">✓ Present</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== WORKING FIGURES GALLERY ==================== -->
   <section class="section" id="figures">
     <div class="container">
       <div class="section-header">
         <div class="section-tag">Visual Verification</div>
-        <h2 class="section-title">Live Working Interface & Figures</h2>
+        <h2 class="section-title">Verified Working System Figures</h2>
         <p class="section-desc">
-          Click any figure to open the high-resolution diagnostic preview.
+          Click any figure to expand the high-resolution diagnostic preview.
         </p>
       </div>
 
@@ -1051,7 +1469,7 @@
         <div class="section-tag">Engineering Pipeline</div>
         <h2 class="section-title">System Architecture</h2>
         <p class="section-desc">
-          High-performance multi-stage processing pipeline connecting real-time video capture to automated attendance persistence.
+          Multi-stage computer vision and deep learning data pipeline from real-time acquisition to automated persistence.
         </p>
       </div>
 
@@ -1094,7 +1512,7 @@
         <div class="section-tag">Core Technologies</div>
         <h2 class="section-title">Hybrid AI Tech Stack</h2>
         <p class="section-desc">
-          Carefully selected technologies balancing cutting-edge Deep Learning accuracy with low-latency CPU inference.
+          Balancing Deep Learning detection accuracy with low-latency real-time CPU inference.
         </p>
       </div>
 
@@ -1164,42 +1582,6 @@
 <span class="code-cmd">python gui_app.py</span></code></pre>
       </div>
 
-      <!-- Sample Output Schema -->
-      <div style="margin-top: 50px;">
-        <h3 style="text-align: center; font-size: 1.3rem; margin-bottom: 20px; color: var(--text-main);">
-          📊 Sample Output (<span style="font-family: var(--font-mono); color: var(--caramel-primary);">attendance.csv</span>)
-        </h3>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Student ID</th>
-                <th>Student Name</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="font-family: var(--font-mono); font-weight: 700;">101</td>
-                <td>GAGAN RAO K</td>
-                <td>2026-11-08</td>
-                <td>08:35:12</td>
-                <td><span class="badge-present">✓ Present</span></td>
-              </tr>
-              <tr>
-                <td style="font-family: var(--font-mono); font-weight: 700;">909</td>
-                <td>Ramesh</td>
-                <td>2026-11-08</td>
-                <td>08:36:04</td>
-                <td><span class="badge-present">✓ Present</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <!-- GitHub Banner CTA -->
       <div class="cta-banner">
         <h3 class="cta-title">Explore the Source Code on GitHub</h3>
@@ -1234,7 +1616,10 @@
     </div>
   </div>
 
-  <!-- JavaScript -->
+  <!-- Toast Notice -->
+  <div class="toast-notice" id="toastNotice">✓ Attendance Marked Successfully!</div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
   <script>
     // Mobile navigation toggle
     const mobileToggle = document.getElementById('mobileToggle');
@@ -1250,7 +1635,7 @@
       });
     });
 
-    // Copy Code functionality
+    // Copy Code
     function copyCode(btn) {
       const codeText = `git clone https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning.git\ncd FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning\npip install -r requirements.txt\npython gui_app.py`;
       navigator.clipboard.writeText(codeText).then(() => {
@@ -1289,6 +1674,447 @@
       if (e.key === 'Escape' && modal.classList.contains('active')) {
         closeModalDirect();
       }
+    });
+
+    /* ========================================================
+       LIVE WEBCAM & 3D FACIAL MESH ENGINE
+       ======================================================== */
+    const videoElement = document.getElementById('webcamVideo');
+    const canvasElement = document.getElementById('outputCanvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const demoPlaceholder = document.getElementById('demoPlaceholder');
+    const videoHud = document.getElementById('videoHud');
+    const startCamBtn = document.getElementById('startCamBtn');
+    const stopCamBtn = document.getElementById('stopCamBtn');
+    const engineStatusText = document.getElementById('engineStatusText');
+    const fpsBadge = document.getElementById('fpsBadge');
+    const toastNotice = document.getElementById('toastNotice');
+
+    let stream = null;
+    let camera = null;
+    let faceMesh = null;
+    let isCameraRunning = false;
+    let isSimulating = false;
+    let simAnimId = null;
+    let currentFacingMode = 'user';
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let currentFps = 30.0;
+
+    // Face mesh indices (MediaPipe 468 landmarks)
+    const OVAL_INDICES = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10];
+    const LEFT_EYE_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246, 33];
+    const RIGHT_EYE_INDICES = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466, 263];
+    const LIPS_INDICES = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 78, 61];
+    const NOSE_INDICES = [168, 6, 197, 195, 5, 4, 1, 19, 94, 2];
+
+    // Initialize MediaPipe FaceMesh
+    function initFaceMesh() {
+      if (typeof FaceMesh === 'undefined') {
+        console.warn('MediaPipe FaceMesh not loaded from CDN, fallback enabled.');
+        return;
+      }
+      try {
+        faceMesh = new FaceMesh({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+        faceMesh.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: false,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+        faceMesh.onResults(onFaceMeshResults);
+      } catch (err) {
+        console.error('FaceMesh init failed:', err);
+      }
+    }
+
+    // Start Live Camera
+    async function startCamera() {
+      if (isSimulating) stopSimulation();
+
+      try {
+        engineStatusText.textContent = "Requesting Camera Access...";
+        const constraints = {
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        };
+
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = stream;
+        await videoElement.play();
+
+        isCameraRunning = true;
+        demoPlaceholder.style.display = 'none';
+        videoHud.style.display = 'flex';
+        startCamBtn.style.display = 'none';
+        stopCamBtn.style.display = 'inline-flex';
+        engineStatusText.textContent = "FaceAttend AI Engine: Tracking Active";
+
+        canvasElement.width = videoElement.videoWidth || 1280;
+        canvasElement.height = videoElement.videoHeight || 720;
+
+        if (faceMesh) {
+          processVideoLoop();
+        } else {
+          initFaceMesh();
+          processVideoLoop();
+        }
+      } catch (err) {
+        console.error('Webcam error:', err);
+        alert('Could not access your webcam. You can click "🧪 Demo Simulation" to experience the live tracking engine!');
+        engineStatusText.textContent = "Camera Denied / Unavailable";
+      }
+    }
+
+    // Process Video Frame Loop
+    async function processVideoLoop() {
+      if (!isCameraRunning) return;
+
+      if (videoElement.readyState >= 2) {
+        if (faceMesh) {
+          try {
+            await faceMesh.send({ image: videoElement });
+          } catch (e) {
+            renderFallbackFrame();
+          }
+        } else {
+          renderFallbackFrame();
+        }
+      }
+
+      // Calculate FPS
+      frameCount++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        currentFps = ((frameCount * 1000) / (now - lastTime)).toFixed(1);
+        fpsBadge.textContent = `● LIVE [${currentFps} FPS]`;
+        frameCount = 0;
+        lastTime = now;
+      }
+
+      requestAnimationFrame(processVideoLoop);
+    }
+
+    // Stop Live Camera
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      isCameraRunning = false;
+      demoPlaceholder.style.display = 'flex';
+      videoHud.style.display = 'none';
+      startCamBtn.style.display = 'inline-flex';
+      stopCamBtn.style.display = 'none';
+      engineStatusText.textContent = "FaceAttend AI Engine: Standby";
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    }
+
+    // Switch Camera (Front/Back)
+    function switchCamera() {
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      if (isCameraRunning) {
+        stopCamera();
+        startCamera();
+      }
+    }
+
+    // On Face Mesh Results
+    function onFaceMeshResults(results) {
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+      if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+        const landmarks = results.multiFaceLandmarks[0];
+        drawSpaciousWireframe(landmarks, canvasElement.width, canvasElement.height);
+      } else {
+        // Draw subtle scanning grid if no face in frame
+        drawScanGrid(canvasElement.width, canvasElement.height);
+      }
+      canvasCtx.restore();
+    }
+
+    // Render Fallback when MediaPipe is loading
+    function renderFallbackFrame() {
+      canvasCtx.save();
+      canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+      drawScanGrid(canvasElement.width, canvasElement.height);
+      canvasCtx.restore();
+    }
+
+    // Draw Light-Brown Geometric Facial Wireframe (Open Eyes & Lips, No Dots)
+    function drawSpaciousWireframe(landmarks, width, height) {
+      canvasCtx.lineWidth = 1.5;
+      canvasCtx.strokeStyle = 'rgba(212, 163, 115, 0.85)'; // Warm caramel light brown
+
+      // Find min/max for bounding box
+      let minX = width, minY = height, maxX = 0, maxY = 0;
+      for (const idx of OVAL_INDICES) {
+        const p = landmarks[idx];
+        const x = p.x * width;
+        const y = p.y * height;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+
+      // Draw Face Oval
+      drawIndexLoop(landmarks, OVAL_INDICES, width, height, 'rgba(212, 163, 115, 0.9)', 2);
+
+      // Draw Open Eye Contours
+      drawIndexLoop(landmarks, LEFT_EYE_INDICES, width, height, 'rgba(250, 237, 205, 0.95)', 2);
+      drawIndexLoop(landmarks, RIGHT_EYE_INDICES, width, height, 'rgba(250, 237, 205, 0.95)', 2);
+
+      // Draw Open Lip Contour
+      drawIndexLoop(landmarks, LIPS_INDICES, width, height, 'rgba(212, 163, 115, 0.9)', 2);
+
+      // Draw Nose Bridge
+      drawIndexPolyline(landmarks, NOSE_INDICES, width, height, 'rgba(196, 131, 68, 0.8)', 1.5);
+
+      // Draw Cheek & Forehead Geometric Lines
+      const CONNECTIONS = [
+        [10, 151], [151, 9], [9, 8], [8, 168],
+        [127, 162], [356, 389],
+        [117, 118], [346, 347],
+        [50, 101], [280, 330],
+        [234, 93], [454, 323],
+        [168, 107], [168, 336]
+      ];
+      for (const [i1, i2] of CONNECTIONS) {
+        const p1 = landmarks[i1];
+        const p2 = landmarks[i2];
+        if (p1 && p2) {
+          canvasCtx.beginPath();
+          canvasCtx.moveTo(p1.x * width, p1.y * height);
+          canvasCtx.lineTo(p2.x * width, p2.y * height);
+          canvasCtx.stroke();
+        }
+      }
+
+      // Draw Corner Bounding Box Brackets
+      const pad = 25;
+      const bx1 = Math.max(0, minX - pad);
+      const by1 = Math.max(0, minY - pad);
+      const bx2 = Math.min(width, maxX + pad);
+      const by2 = Math.min(height, maxY + pad);
+      const cLen = 30;
+
+      canvasCtx.lineWidth = 3;
+      canvasCtx.strokeStyle = '#d4a373';
+      // TL
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx1, by1 + cLen); canvasCtx.lineTo(bx1, by1); canvasCtx.lineTo(bx1 + cLen, by1); canvasCtx.stroke();
+      // TR
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx2 - cLen, by1); canvasCtx.lineTo(bx2, by1); canvasCtx.lineTo(bx2, by1 + cLen); canvasCtx.stroke();
+      // BL
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx1, by2 - cLen); canvasCtx.lineTo(bx1, by2); canvasCtx.lineTo(bx1 + cLen, by2); canvasCtx.stroke();
+      // BR
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx2 - cLen, by2); canvasCtx.lineTo(bx2, by2); canvasCtx.lineTo(bx2, by2 - cLen); canvasCtx.stroke();
+    }
+
+    function drawIndexLoop(landmarks, indices, w, h, color, lineWidth) {
+      canvasCtx.beginPath();
+      canvasCtx.strokeStyle = color;
+      canvasCtx.lineWidth = lineWidth;
+      for (let i = 0; i < indices.length; i++) {
+        const p = landmarks[indices[i]];
+        if (!p) continue;
+        const x = p.x * w;
+        const y = p.y * h;
+        if (i === 0) canvasCtx.moveTo(x, y);
+        else canvasCtx.lineTo(x, y);
+      }
+      canvasCtx.closePath();
+      canvasCtx.stroke();
+    }
+
+    function drawIndexPolyline(landmarks, indices, w, h, color, lineWidth) {
+      canvasCtx.beginPath();
+      canvasCtx.strokeStyle = color;
+      canvasCtx.lineWidth = lineWidth;
+      for (let i = 0; i < indices.length; i++) {
+        const p = landmarks[indices[i]];
+        if (!p) continue;
+        const x = p.x * w;
+        const y = p.y * h;
+        if (i === 0) canvasCtx.moveTo(x, y);
+        else canvasCtx.lineTo(x, y);
+      }
+      canvasCtx.stroke();
+    }
+
+    function drawScanGrid(w, h) {
+      canvasCtx.strokeStyle = 'rgba(212, 163, 115, 0.15)';
+      canvasCtx.lineWidth = 1;
+      const step = 60;
+      for (let x = 0; x < w; x += step) {
+        canvasCtx.beginPath(); canvasCtx.moveTo(x, 0); canvasCtx.lineTo(x, h); canvasCtx.stroke();
+      }
+      for (let y = 0; y < h; y += step) {
+        canvasCtx.beginPath(); canvasCtx.moveTo(0, y); canvasCtx.lineTo(w, y); canvasCtx.stroke();
+      }
+    }
+
+    /* ========================================================
+       DEMO SIMULATION MODE (Zero-Camera Fallback)
+       ======================================================== */
+    let simAngle = 0;
+    function toggleSimulatedMode() {
+      if (isSimulating) {
+        stopSimulation();
+      } else {
+        startSimulation();
+      }
+    }
+
+    function startSimulation() {
+      if (isCameraRunning) stopCamera();
+
+      isSimulating = true;
+      demoPlaceholder.style.display = 'none';
+      videoHud.style.display = 'flex';
+      startCamBtn.style.display = 'none';
+      stopCamBtn.style.display = 'inline-flex';
+      engineStatusText.textContent = "FaceAttend AI Engine: Simulation Mode Active";
+
+      canvasElement.width = 1280;
+      canvasElement.height = 720;
+      renderSimulationLoop();
+    }
+
+    function stopSimulation() {
+      isSimulating = false;
+      cancelAnimationFrame(simAnimId);
+      demoPlaceholder.style.display = 'flex';
+      videoHud.style.display = 'none';
+      startCamBtn.style.display = 'inline-flex';
+      stopCamBtn.style.display = 'none';
+      engineStatusText.textContent = "FaceAttend AI Engine: Standby";
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    }
+
+    function renderSimulationLoop() {
+      if (!isSimulating) return;
+
+      const w = canvasElement.width;
+      const h = canvasElement.height;
+
+      canvasCtx.fillStyle = '#14110e';
+      canvasCtx.fillRect(0, 0, w, h);
+
+      drawScanGrid(w, h);
+
+      simAngle += 0.03;
+      const cx = w / 2 + Math.sin(simAngle) * 35;
+      const cy = h / 2 - 20 + Math.cos(simAngle * 0.7) * 20;
+
+      // Simulated 3D geometric mesh
+      canvasCtx.strokeStyle = '#d4a373';
+      canvasCtx.lineWidth = 2;
+      canvasCtx.beginPath();
+      canvasCtx.ellipse(cx, cy, 150, 210, 0, 0, Math.PI * 2);
+      canvasCtx.stroke();
+
+      // Facial wire lines
+      canvasCtx.strokeStyle = 'rgba(196, 131, 68, 0.7)';
+      canvasCtx.lineWidth = 1;
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(cx - 100, cy - 30); canvasCtx.lineTo(cx, cy + 50); canvasCtx.lineTo(cx + 100, cy - 30);
+      canvasCtx.moveTo(cx - 100, cy - 30); canvasCtx.lineTo(cx, cy - 140); canvasCtx.lineTo(cx + 100, cy - 30);
+      canvasCtx.moveTo(cx, cy - 140); canvasCtx.lineTo(cx, cy + 180);
+      canvasCtx.stroke();
+
+      // Eyes
+      canvasCtx.strokeStyle = '#faedcd';
+      canvasCtx.lineWidth = 2;
+      canvasCtx.strokeRect(cx - 70, cy - 40, 45, 20);
+      canvasCtx.strokeRect(cx + 25, cy - 40, 45, 20);
+
+      // Lips
+      canvasCtx.strokeRect(cx - 45, cy + 110, 90, 25);
+
+      // Bounding box corners
+      const bx1 = cx - 180, by1 = cy - 240, bx2 = cx + 180, by2 = cy + 240;
+      canvasCtx.lineWidth = 3;
+      canvasCtx.strokeStyle = '#d4a373';
+      const cLen = 30;
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx1, by1 + cLen); canvasCtx.lineTo(bx1, by1); canvasCtx.lineTo(bx1 + cLen, by1); canvasCtx.stroke();
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx2 - cLen, by1); canvasCtx.lineTo(bx2, by1); canvasCtx.lineTo(bx2, by1 + cLen); canvasCtx.stroke();
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx1, by2 - cLen); canvasCtx.lineTo(bx1, by2); canvasCtx.lineTo(bx1 + cLen, by2); canvasCtx.stroke();
+      canvasCtx.beginPath(); canvasCtx.moveTo(bx2 - cLen, by2); canvasCtx.lineTo(bx2, by2); canvasCtx.lineTo(bx2, by2 - cLen); canvasCtx.stroke();
+
+      simAnimId = requestAnimationFrame(renderSimulationLoop);
+    }
+
+    /* ========================================================
+       ATTENDANCE MARKING & CSV EXPORT
+       ======================================================== */
+    const attendanceRecords = [
+      { id: "101", name: "Demo Student", date: "2026-11-13", time: "08:35:12", status: "Present" }
+    ];
+
+    function markAttendance() {
+      const idInput = document.getElementById('studentIdInput');
+      const nameInput = document.getElementById('studentNameInput');
+
+      const id = idInput.value.trim() || "101";
+      const name = nameInput.value.trim() || "Registered Student";
+
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toTimeString().split(' ')[0];
+
+      // Add record
+      const record = { id, name, date: dateStr, time: timeStr, status: "Present" };
+      attendanceRecords.unshift(record);
+
+      // Update table
+      const tbody = document.getElementById('attendanceTableBody');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="font-family: var(--font-mono); font-weight: 700;">${record.id}</td>
+        <td>${record.name}</td>
+        <td>${record.date}</td>
+        <td>${record.time}</td>
+        <td><span class="badge-present">✓ Present</span></td>
+      `;
+      tbody.prepend(row);
+
+      // Trigger Toast Notice
+      toastNotice.textContent = `✓ Attendance Logged: ${record.id} - ${record.name} (${record.time})`;
+      toastNotice.style.display = 'block';
+      setTimeout(() => {
+        toastNotice.style.display = 'none';
+      }, 3000);
+    }
+
+    function exportAttendanceCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Student_ID,Name,Date,Time,Status\n";
+      for (const r of attendanceRecords) {
+        csvContent += `${r.id},"${r.name}",${r.date},${r.time},${r.status}\n`;
+      }
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "attendance.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Set today's date on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const initDate = document.getElementById('initialDate');
+      if (initDate) initDate.textContent = today;
+      initFaceMesh();
     });
   </script>
 </body>
