@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FaceAttend AI — Real-Time Automated Attendance System</title>
+  <meta name="description" content="Next-Generation Contactless Student Attendance Management via 3D Facial Mesh, YOLOv8 Deep Learning & LBPH Face Recognition.">
+  <meta name="theme-color" content="#15120f">
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:title" content="FaceAttend AI: 3D Face Mesh & Deep Learning Attendance System">
+  <meta property="og:description" content="Real-time contactless student attendance system with YOLOv8, MediaPipe 3D Mesh, OpenCV LBPH, and Desktop GUI.">
+  <meta property="og:image" content="assets/gui_dashboard.png">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========================================================
+       DESIGN TOKENS — LIGHT BROWN & ROASTED ESPRESSO
+       ======================================================== */
+    :root {
+      --bg-base: #14110e;
+      --bg-surface: #1d1814;
+      --bg-surface-elevated: #26201b;
+      --bg-surface-card: #221c17;
+      --border-subtle: #382c23;
+      --border-highlight: #5a4536;
+
+      --caramel-primary: #d4a373;
+      --caramel-light: #faedcd;
+      --caramel-dark: #b87c47;
+      --caramel-glow: rgba(212, 163, 115, 0.22);
+
+      --text-main: #faedcd;
+      --text-muted: #c4b5a2;
+      --text-dim: #8e7e6f;
+
+      --badge-success: #2ecc71;
+      --badge-success-bg: rgba(46, 204, 113, 0.12);
+      --badge-accent-bg: rgba(212, 163, 115, 0.12);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.45);
+      --shadow-glow: 0 0 25px var(--caramel-glow);
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
+    }
+
+    /* CSS Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+    }
+
+    body {
+      line-height: 1.65;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 0%, #291f18 0%, var(--bg-base) 70%);
+    }
+
+    a {
+      color: var(--caramel-primary);
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    a:hover {
+      color: var(--caramel-light);
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ========================================================
+       NAVIGATION BAR
+       ======================================================== */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(20, 17, 14, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: all 0.3s ease;
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--caramel-primary), var(--caramel-dark));
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #14110e;
+      box-shadow: 0 4px 12px rgba(212, 163, 115, 0.3);
+    }
+
+    .brand span {
+      color: var(--caramel-primary);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      color: var(--caramel-primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: var(--bg-surface-elevated);
+      color: var(--caramel-light);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.25s ease;
+    }
+
+    .btn-github:hover {
+      background: var(--caramel-primary);
+      color: #14110e;
+      border-color: var(--caramel-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px var(--caramel-glow);
+    }
+
+    .btn-github svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Mobile Hamburger */
+    .mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.6rem;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* ========================================================
+       HERO SECTION
+       ======================================================== */
+    .hero {
+      padding: 85px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--badge-accent-bg);
+      border: 1px solid var(--border-highlight);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--caramel-primary);
+      margin-bottom: 24px;
+    }
+
+    .hero-badge-pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--badge-success);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--badge-success);
+    }
+
+    .hero-title {
+      font-size: clamp(2.3rem, 5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      max-width: 960px;
+      margin: 0 auto 20px;
+      color: var(--text-main);
+    }
+
+    .hero-title .highlight {
+      background: linear-gradient(135deg, var(--caramel-primary) 30%, #f7d794 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto 36px;
+      font-weight: 400;
+    }
+
+    .hero-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 50px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--caramel-primary), var(--caramel-dark));
+      color: #14110e;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 18px var(--caramel-glow);
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(212, 163, 115, 0.4);
+      color: #14110e;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: var(--bg-surface);
+      color: var(--caramel-light);
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-md);
+      transition: all 0.25s ease;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-surface-elevated);
+      border-color: var(--caramel-primary);
+      transform: translateY(-2px);
+    }
+
+    /* Metric Counters */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 24px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+    }
+
+    .metric-card {
+      text-align: center;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--caramel-primary);
+      margin-bottom: 4px;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ========================================================
+       SECTION HEADERS
+       ======================================================== */
+    .section {
+      padding: 80px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto 50px;
+    }
+
+    .section-tag {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--caramel-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 14px;
+    }
+
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+    }
+
+    /* ========================================================
+       LIVE WORKING FIGURES GALLERY
+       ======================================================== */
+    .figures-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+    }
+
+    .figure-card.featured {
+      grid-column: 1 / -1;
+    }
+
+    .figure-card {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .figure-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), var(--shadow-glow);
+    }
+
+    .figure-img-wrap {
+      position: relative;
+      overflow: hidden;
+      cursor: zoom-in;
+      background: #0f0d0b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .figure-img-wrap img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .figure-card:hover .figure-img-wrap img {
+      transform: scale(1.02);
+    }
+
+    .figure-zoom-pill {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(20, 17, 14, 0.85);
+      border: 1px solid var(--border-highlight);
+      color: var(--caramel-light);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .figure-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .figure-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .figure-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ========================================================
+       SYSTEM ARCHITECTURE PIPELINE
+       ======================================================== */
+    .arch-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      position: relative;
+    }
+
+    .pipeline-step {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 22px 18px;
+      text-align: center;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .pipeline-step:hover {
+      border-color: var(--caramel-primary);
+      transform: translateY(-3px);
+    }
+
+    .pipeline-step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--caramel-primary);
+      color: #14110e;
+      font-weight: 800;
+      font-size: 0.85rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .pipeline-step-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .pipeline-step-sub {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    /* ========================================================
+       TECHNOLOGY STACK GRID
+       ======================================================== */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .tech-card {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: all 0.25s ease;
+    }
+
+    .tech-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-3px);
+    }
+
+    .tech-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+
+    .tech-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--caramel-light);
+      margin-bottom: 10px;
+    }
+
+    .tech-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tech-list li {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .tech-list li::before {
+      content: "•";
+      color: var(--caramel-primary);
+      font-weight: bold;
+    }
+
+    /* ========================================================
+       QUICKSTART CODE BLOCK
+       ======================================================== */
+    .code-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--bg-surface-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .code-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .code-dot.red { background: #ff5f56; }
+    .code-dot.yellow { background: #ffbd2e; }
+    .code-dot.green { background: #27c93f; }
+
+    .code-filename {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    .btn-copy {
+      background: transparent;
+      border: 1px solid var(--border-highlight);
+      color: var(--caramel-light);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-copy:hover {
+      background: var(--caramel-primary);
+      color: #14110e;
+    }
+
+    .code-body {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #f7d794;
+      line-height: 1.7;
+    }
+
+    .code-comment {
+      color: var(--text-dim);
+    }
+
+    .code-cmd {
+      color: #faedcd;
+    }
+
+    /* ========================================================
+       DATA SCHEMA TABLE
+       ======================================================== */
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+      box-shadow: var(--shadow-card);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: var(--bg-surface-elevated);
+      color: var(--caramel-primary);
+      padding: 16px 20px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(212, 163, 115, 0.04);
+    }
+
+    .badge-present {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--badge-success-bg);
+      color: var(--badge-success);
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    /* ========================================================
+       FOOTER & GITHUB CTA BANNER
+       ======================================================== */
+    .cta-banner {
+      background: linear-gradient(135deg, #2b211a, #1a1512);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-xl);
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: var(--shadow-card);
+      margin-top: 40px;
+    }
+
+    .cta-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 14px;
+    }
+
+    .cta-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 30px;
+    }
+
+    .footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 40px 0;
+      margin-top: 80px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    .footer a {
+      color: var(--caramel-primary);
+    }
+
+    /* ========================================================
+       IMAGE PREVIEW MODAL
+       ======================================================== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 8, 7, 0.92);
+      backdrop-filter: blur(10px);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content-wrap {
+      max-width: 1200px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .modal-img {
+      max-height: 80vh;
+      width: auto;
+      max-width: 100%;
+      border-radius: var(--radius-md);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--border-highlight);
+    }
+
+    .modal-caption {
+      color: var(--caramel-light);
+      margin-top: 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* ========================================================
+       RESPONSIVE ADAPTATIONS (MOBILE, TABLET, LAPTOP)
+       ======================================================== */
+    @media (max-width: 1024px) {
+      .pipeline-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .tech-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 72px;
+        left: 0;
+        width: 100%;
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border-subtle);
+        flex-direction: column;
+        padding: 20px;
+        gap: 16px;
+      }
+      .nav-links.active {
+        display: flex;
+      }
+      .mobile-toggle {
+        display: block;
+      }
+      .metrics-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .figures-grid {
+        grid-template-columns: 1fr;
+      }
+      .pipeline-grid {
+        grid-template-columns: 1fr;
+      }
+      .tech-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero {
+        padding: 50px 0 40px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .metrics-bar {
+        grid-template-columns: 1fr;
+      }
+      .btn-primary, .btn-secondary, .btn-github {
+        width: 100%;
+        justify-content: center;
+      }
+      .hero-cta {
+        flex-direction: column;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== NAVBAR ==================== -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand">
+        <div class="brand-icon">🎓</div>
+        FaceAttend<span>AI</span>
+      </a>
+
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Navigation">☰</button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#figures">Live Figures</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#tech-stack">Tech Stack</a></li>
+        <li><a href="#quickstart">Quickstart</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub Repo
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== HERO ==================== -->
+  <header class="hero" id="overview">
+    <div class="container">
+      <div class="hero-badge">
+        <span class="hero-badge-pulse"></span>
+        Production-Ready Computer Vision System
+      </div>
+
+      <h1 class="hero-title">
+        Real-Time Automated Attendance via <span class="highlight">3D Face Mesh</span> & Deep Learning
+      </h1>
+
+      <p class="hero-subtitle">
+        Eliminate proxy attendance and roll-call delays. A contactless biometric platform fusing 
+        <strong>YOLOv8</strong> deep object detection, <strong>Google MediaPipe</strong> 3D spatial face tracking, 
+        and <strong>OpenCV LBPH</strong> with an executive desktop dashboard.
+      </p>
+
+      <div class="hero-cta">
+        <a href="https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning" target="_blank" rel="noopener noreferrer" class="btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View GitHub Repository
+        </a>
+        <a href="#figures" class="btn-secondary">
+          ⚡ Explore Live Working Figures
+        </a>
+      </div>
+
+      <!-- Live Performance Metrics -->
+      <div class="metrics-bar">
+        <div class="metric-card">
+          <div class="metric-value">30+ FPS</div>
+          <div class="metric-label">Real-Time Camera Stream</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">478</div>
+          <div class="metric-label">3D Face Mesh Coordinates</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">&lt; 3 Sec</div>
+          <div class="metric-label">Local Model Training</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">100%</div>
+          <div class="metric-label">Contactless & Touchless</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== LIVE WORKING FIGURES ==================== -->
+  <section class="section" id="figures">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Visual Verification</div>
+        <h2 class="section-title">Live Working Interface & Figures</h2>
+        <p class="section-desc">
+          Click any figure to open the high-resolution diagnostic preview.
+        </p>
+      </div>
+
+      <div class="figures-grid">
+        <!-- Figure 1 -->
+        <div class="figure-card featured">
+          <div class="figure-img-wrap" onclick="openModal('assets/gui_dashboard.png', 'Figure 1: Executive Desktop GUI Dashboard')">
+            <img src="assets/gui_dashboard.png" alt="Figure 1: Desktop GUI Dashboard" loading="lazy">
+            <span class="figure-zoom-pill">🔍 Click to Expand</span>
+          </div>
+          <div class="figure-content">
+            <h3 class="figure-title">Figure 1: Executive Desktop GUI Dashboard</h3>
+            <p class="figure-desc">
+              Unified control center in Dark Espresso & Light Brown. Features real-time system metrics, 1-click action triggers, automated student registration with auto 20-photo capture, and interactive tabular record browser with compact refresh and CSV open tools.
+            </p>
+          </div>
+        </div>
+
+        <!-- Figure 2 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap" onclick="openModal('assets/live_mesh_attendance.png', 'Figure 2: Real-Time Live Attendance with 3D Face Mesh')">
+            <img src="assets/live_mesh_attendance.png" alt="Figure 2: 3D Face Mesh Live Attendance" loading="lazy">
+            <span class="figure-zoom-pill">🔍 Click to Expand</span>
+          </div>
+          <div class="figure-content">
+            <h3 class="figure-title">Figure 2: Real-Time Live Attendance (3D Mesh)</h3>
+            <p class="figure-desc">
+              Live webcam tracking operating at 30+ FPS. Renders the light-brown geometric facial wireframe (open eye/mouth contours, zero dotted noise), verified HUD badges, and automatic CSV logging.
+            </p>
+          </div>
+        </div>
+
+        <!-- Figure 3 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap" onclick="openModal('assets/recognition_test.png', 'Figure 3: Biometric Face Recognition & Distance Metric Scoring')">
+            <img src="assets/recognition_test.png" alt="Figure 3: Biometric Face Recognition" loading="lazy">
+            <span class="figure-zoom-pill">🔍 Click to Expand</span>
+          </div>
+          <div class="figure-content">
+            <h3 class="figure-title">Figure 3: Biometric Recognition & Distance Scoring</h3>
+            <p class="figure-desc">
+              Real-time diagnostic verification showing matched student roll number, name, and live Euclidean texture distance score (&le; 55 threshold).
+            </p>
+          </div>
+        </div>
+
+        <!-- Figure 4 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap" onclick="openModal('assets/confusion_matrix.png', 'Figure 4: YOLOv8 Object Detection Confusion Matrix')">
+            <img src="assets/confusion_matrix.png" alt="Figure 4: YOLOv8 Confusion Matrix" loading="lazy">
+            <span class="figure-zoom-pill">🔍 Click to Expand</span>
+          </div>
+          <div class="figure-content">
+            <h3 class="figure-title">Figure 4: YOLOv8 Confusion Matrix</h3>
+            <p class="figure-desc">
+              Normalized detection performance matrix demonstrating high precision across validation splits for student localization.
+            </p>
+          </div>
+        </div>
+
+        <!-- Figure 5 -->
+        <div class="figure-card">
+          <div class="figure-img-wrap" onclick="openModal('assets/yolo_results.png', 'Figure 5: YOLOv8 Training Loss & Convergence Performance')">
+            <img src="assets/yolo_results.png" alt="Figure 5: Training Results" loading="lazy">
+            <span class="figure-zoom-pill">🔍 Click to Expand</span>
+          </div>
+          <div class="figure-content">
+            <h3 class="figure-title">Figure 5: Training Loss & Precision/Recall</h3>
+            <p class="figure-desc">
+              Comprehensive convergence curves across training epochs showing optimal loss stabilization and high mean average precision (mAP50).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SYSTEM ARCHITECTURE ==================== -->
+  <section class="section" id="architecture">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Engineering Pipeline</div>
+        <h2 class="section-title">System Architecture</h2>
+        <p class="section-desc">
+          High-performance multi-stage processing pipeline connecting real-time video capture to automated attendance persistence.
+        </p>
+      </div>
+
+      <div class="arch-container">
+        <div class="pipeline-grid">
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">1</div>
+            <h4 class="pipeline-step-title">Video Stream</h4>
+            <p class="pipeline-step-sub">30 FPS Live Webcam frame capture via OpenCV</p>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">2</div>
+            <h4 class="pipeline-step-title">Localization</h4>
+            <p class="pipeline-step-sub">Haar Cascade & YOLOv8 Deep CNN detection</p>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">3</div>
+            <h4 class="pipeline-step-title">3D Mesh & LBPH</h4>
+            <p class="pipeline-step-sub">478 3D Landmarks & Local Binary Pattern Histograms</p>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">4</div>
+            <h4 class="pipeline-step-title">HUD Verification</h4>
+            <p class="pipeline-step-sub">Distance threshold evaluation & geometric wireframe</p>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">5</div>
+            <h4 class="pipeline-step-title">CSV Storage</h4>
+            <p class="pipeline-step-sub">Session duplicate filtering & attendance log persistence</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TECHNOLOGY STACK ==================== -->
+  <section class="section" id="tech-stack">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Core Technologies</div>
+        <h2 class="section-title">Hybrid AI Tech Stack</h2>
+        <p class="section-desc">
+          Carefully selected technologies balancing cutting-edge Deep Learning accuracy with low-latency CPU inference.
+        </p>
+      </div>
+
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-icon">🧠</div>
+          <h3 class="tech-title">Deep Learning</h3>
+          <ul class="tech-list">
+            <li><strong>YOLOv8 (Ultralytics)</strong> — Real-time deep object detection & student localization.</li>
+            <li><strong>MediaPipe Landmarker</strong> — Google 478 3D regression neural net.</li>
+            <li><strong>PyTorch</strong> — Tensor compute backend.</li>
+          </ul>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-icon">👁️</div>
+          <h3 class="tech-title">Computer Vision & ML</h3>
+          <ul class="tech-list">
+            <li><strong>OpenCV LBPH</strong> — Local Binary Patterns Histograms for instant recognition.</li>
+            <li><strong>Haar Cascade Classifier</strong> — Frontal face crop extraction.</li>
+            <li><strong>Euclidean Metric</strong> — Distance-based confidence scoring.</li>
+          </ul>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-icon">🖥️</div>
+          <h3 class="tech-title">UI & Infrastructure</h3>
+          <ul class="tech-list">
+            <li><strong>Python Tkinter & ttk</strong> — Multithreaded Desktop Dashboard.</li>
+            <li><strong>CSV Database</strong> — Automated attendance and roster storage.</li>
+            <li><strong>Windows Batch</strong> — 1-Click launcher (run_app.bat).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== QUICKSTART & INSTALLATION ==================== -->
+  <section class="section" id="quickstart">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Get Started in Seconds</div>
+        <h2 class="section-title">Installation & Execution</h2>
+        <p class="section-desc">
+          Clone the repository, install dependencies, and run the Desktop GUI with just 3 commands.
+        </p>
+      </div>
+
+      <div class="code-container">
+        <div class="code-header">
+          <div class="code-dots">
+            <span class="code-dot red"></span>
+            <span class="code-dot yellow"></span>
+            <span class="code-dot green"></span>
+          </div>
+          <div class="code-filename">Terminal / PowerShell</div>
+          <button class="btn-copy" onclick="copyCode(this)">📋 Copy</button>
+        </div>
+        <pre class="code-body"><code id="quickstartCode"><span class="code-comment"># 1. Clone the repository</span>
+<span class="code-cmd">git clone https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning.git</span>
+<span class="code-cmd">cd FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning</span>
+
+<span class="code-comment"># 2. Install required Python packages</span>
+<span class="code-cmd">pip install -r requirements.txt</span>
+
+<span class="code-comment"># 3. Launch the Executive Desktop GUI</span>
+<span class="code-cmd">python gui_app.py</span></code></pre>
+      </div>
+
+      <!-- Sample Output Schema -->
+      <div style="margin-top: 50px;">
+        <h3 style="text-align: center; font-size: 1.3rem; margin-bottom: 20px; color: var(--text-main);">
+          📊 Sample Output (<span style="font-family: var(--font-mono); color: var(--caramel-primary);">attendance.csv</span>)
+        </h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-family: var(--font-mono); font-weight: 700;">101</td>
+                <td>GAGAN RAO K</td>
+                <td>2026-11-08</td>
+                <td>08:35:12</td>
+                <td><span class="badge-present">✓ Present</span></td>
+              </tr>
+              <tr>
+                <td style="font-family: var(--font-mono); font-weight: 700;">909</td>
+                <td>Ramesh</td>
+                <td>2026-11-08</td>
+                <td>08:36:04</td>
+                <td><span class="badge-present">✓ Present</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GitHub Banner CTA -->
+      <div class="cta-banner">
+        <h3 class="cta-title">Explore the Source Code on GitHub</h3>
+        <p class="cta-desc">
+          Complete codebase, pre-trained model weights, evaluation scripts, and batch launchers are available open-source under the MIT License.
+        </p>
+        <a href="https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex;">
+          ⭐ Star & View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="container">
+      <p style="margin-bottom: 8px;">
+        Designed & Developed by <strong><a href="https://github.com/gaganraok04" target="_blank">GAGAN RAO K</a></strong>
+      </p>
+      <p style="font-size: 0.85rem;">
+        Licensed under the <a href="LICENSE" target="_blank">MIT License</a>. Built with Python, OpenCV, YOLOv8, MediaPipe & Tkinter.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ==================== IMAGE MODAL ==================== -->
+  <div class="modal" id="imageModal" onclick="closeModal(event)">
+    <div class="modal-content-wrap">
+      <button class="modal-close" onclick="closeModalDirect()">×</button>
+      <img id="modalImg" class="modal-img" src="" alt="Diagnostic Preview">
+      <div id="modalCaption" class="modal-caption"></div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Mobile navigation toggle
+    const mobileToggle = document.getElementById('mobileToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    mobileToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+      });
+    });
+
+    // Copy Code functionality
+    function copyCode(btn) {
+      const codeText = `git clone https://github.com/gaganraok04/FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning.git\ncd FaceAttend-AI-Real-Time-Automated-Attendance-System-with-3D-Face-Mesh-Deep-Learning\npip install -r requirements.txt\npython gui_app.py`;
+      navigator.clipboard.writeText(codeText).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "✓ Copied!";
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      });
+    }
+
+    // Modal Image Preview
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImg');
+    const modalCaption = document.getElementById('modalCaption');
+
+    function openModal(src, caption) {
+      modalImg.src = src;
+      modalCaption.textContent = caption;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModalDirect() {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function closeModal(event) {
+      if (event.target === modal) {
+        closeModalDirect();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeModalDirect();
+      }
+    });
+  </script>
+</body>
+</html>
